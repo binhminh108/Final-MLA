@@ -1,6 +1,6 @@
 # MLA Fall 2025 - Hanoi University
 # Academic Integrity Declaration:
-# I, [Student Name] ([Student ID]), declare that this code is my own original work.
+# I, Vu Van Thang (2201040169), declare that this code is my own original work.
 # I have not copied or adapted code from any external repositories or previous years.
 # Any sources or libraries used are explicitly cited below.
 from utils import (

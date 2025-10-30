@@ -156,14 +156,34 @@ def main():
     print(f"\nBest k* found from validation set: {best_k}")
     test_acc, _, _ = user_knn_predict_hanu(sparse_matrix, test_data, best_k)
     print(f"Final Test Accuracy with k* = {best_k}: {test_acc:.4f}\n")
+
+
+    print("\n--- Running Item-Based KNN on Validation Set ---")
+    best_item_acc = 0
+    best_item_k = -1
+
+    for k in ks:
+        acc = item_knn_predict_hanu(sparse_matrix, val_data, k, student_id="2201040200")
+        print(f"For k = {k}, Validation Accuracy (Item-based): {acc:.4f}")
+    if acc > best_item_acc:
+        best_item_acc = acc
+        best_item_k = k
+
+    print(f"Best k* for Item-based KNN: {best_item_k} with Validation Accuracy = {best_item_acc:.4f}")
     #####################################################################
     #                       END OF YOUR CODE                            #
     #####################################################################
-    print(f"[Summary] For K={best_k}, the user-based KNN achieved {best_acc:.3f} validation accuracy.")
+    print("")
+    print(f"[Summary] For K={best_k}, the user-based KNN achieved {best_acc:.3f} validation accuracy. With a corresponding ROC-AUC score of {roc_auc:.4f} and test accuracy of {test_acc:.4f}.")
     print(f"Reflection: KNN performed best when K was {best_k}. "
           "This suggests that considering a moderate number of similar users provides the best signal for prediction, "
         "whereas a very small K is too noisy and a very large K includes too many dissimilar users.")
 
+    print(f"For the item-based KNN, the best validation accuracy was {acc:.4f} at k = {best_item_k}.")
+    print("Reflection: This shows that considering many similar questions helps the model to better utilize the relationship between questions to predict the outcome. " 
+          "However, if k continues to increase too much, the model may be contaminated by less relevant questions, leading to a decline in predictive performance.")
+    
+    print(f"User-based KNN achieved accuracy {best_acc:.4f}, item-based KNN achieved accuracy {best_item_acc:.4f}, suggesting that user similarity captures learning behavior more effectively than question similarity.")
 
 if __name__ == "__main__":
     main()
