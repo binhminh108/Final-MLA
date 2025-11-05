@@ -3,6 +3,7 @@
 # I, Vu Van Thang (2201040169), declare that this code is my own original work.
 # I have not copied or adapted code from any external repositories or previous years.
 # Any sources or libraries used are explicitly cited below.
+
 from utils import (
     load_train_csv,
     load_valid_csv,
@@ -14,25 +15,12 @@ import matplotlib.pyplot as plt
 
 
 def sigmoid(x):
-    """Apply sigmoid function."""
-    return np.exp(x) / (1 + np.exp(x))
+    """Numerically stable sigmoid function."""
+    return 1 / (1 + np.exp(-x))
 
 
 def neg_log_likelihood(data, theta, beta, lamb=0.0):
-    """Compute the negative log-likelihood.
-
-    You may optionally replace the function arguments to receive a matrix.
-
-    :param data: A dictionary {user_id: list, question_id: list,
-    is_correct: list}
-    :param theta: Vector
-    :param beta: Vector
-    :return: float
-    """
-    #####################################################################
-    # TODO:                                                             #
-    # Implement the function as described in the docstring.             #
-    #####################################################################
+    """Compute the negative log-likelihood for the IRT model."""
     user_ids = data["user_id"]
     question_ids = data["question_id"]
     is_correct = data["is_correct"]
@@ -43,35 +31,12 @@ def neg_log_likelihood(data, theta, beta, lamb=0.0):
         p = sigmoid(x)
         log_likelihood += c * np.log(p + 1e-9) + (1 - c) * np.log(1 - p + 1e-9)
 
-    # add L2 regularization
-    reg = (lamb / 2) * (np.sum(theta**2) + np.sum(beta**2))
-    #####################################################################
-    #                               END OF YOUR CODE                    #
-    #####################################################################
+    reg = (lamb / 2) * (np.sum(theta ** 2) + np.sum(beta ** 2))
     return -log_likelihood + reg
 
 
 def update_theta_beta(data, lr, theta, beta, lamb=0.0):
-    """Update theta and beta using gradient descent.
-
-    You are using alternating gradient descent. Your update should look:
-    for i in iterations ...
-        theta <- new_theta
-        beta <- new_beta
-
-    You may optionally replace the function arguments to receive a matrix.
-
-    :param data: A dictionary {user_id: list, question_id: list,
-    is_correct: list}
-    :param lr: float
-    :param theta: Vector
-    :param beta: Vector
-    :return: tuple of vectors
-    """
-    #####################################################################
-    # TODO:                                                             #
-    # Implement the function as described in the docstring.             #
-    #####################################################################
+    """Update theta and beta using gradient descent."""
     user_ids = data["user_id"]
     question_ids = data["question_id"]
     is_correct = data["is_correct"]
@@ -85,80 +50,49 @@ def update_theta_beta(data, lr, theta, beta, lamb=0.0):
         d_theta[i] += (c - p)
         d_beta[q] += -(c - p)
 
-    # L2 regularization
+    # Apply L2 regularization
     d_theta -= lamb * theta
     d_beta -= lamb * beta
 
     theta += lr * d_theta
     beta += lr * d_beta
-    #####################################################################
-    #                               END OF YOUR CODE                    #
-    #####################################################################
     return theta, beta
 
 
+def evaluate(data, theta, beta):
+    """Evaluate model accuracy."""
+    pred = []
+    for i, q, c in zip(data["user_id"], data["question_id"], data["is_correct"]):
+        p = sigmoid(theta[i] - beta[q])
+        pred.append(p >= 0.5)
+    return np.mean(np.array(pred) == np.array(data["is_correct"]))
+
+
 def irt(train_data, val_data, lr, iterations, lamb=0.0):
-    """Train IRT model.
-
-    You may optionally replace the function arguments to receive a matrix.
-
-    :param data: A dictionary {user_id: list, question_id: list,
-    is_correct: list}
-    :param val_data: A dictionary {user_id: list, question_id: list,
-    is_correct: list}
-    :param lr: float
-    :param iterations: int
-    :return: (theta, beta, val_acc_lst)
-    """
-    #####################################################################
-    # TODO: Initialize theta and beta.
+    """Train IRT model using alternating gradient descent."""
     n_users = max(train_data["user_id"]) + 1
     n_questions = max(train_data["question_id"]) + 1
 
     theta = np.random.normal(0, 0.1, n_users)
     beta = np.random.normal(0, 0.1, n_questions)
-    #####################################################################
-    #                               END OF YOUR CODE                    #
-    #####################################################################
 
-    val_acc_lst = []
-    nll_list = []
+    val_acc_lst, nll_list = [], []
 
     for i in range(iterations):
         nll = neg_log_likelihood(train_data, theta, beta, lamb)
-        score = evaluate(val_data, theta, beta)
-        val_acc_lst.append(score)
+        val_acc = evaluate(val_data, theta, beta)
+        val_acc_lst.append(val_acc)
         nll_list.append(nll)
 
-        print(f"Epoch {i+1}/{iterations} | NLL={nll:.4f} | ValAcc={score:.4f}")
+        print(f"Epoch {i+1}/{iterations} | NLL={nll:.4f} | ValAcc={val_acc:.4f}")
+
         theta, beta = update_theta_beta(train_data, lr, theta, beta, lamb)
 
-    #####################################################################
-    # TODO: You may change the return values to achieve what you want.
     return theta, beta, val_acc_lst, nll_list
-    #####################################################################
-    #                               END OF YOUR CODE                    #
-    #####################################################################
 
-
-def evaluate(data, theta, beta):
-    """Evaluate the model given data and return the accuracy.
-    :param data: A dictionary {user_id: list, question_id: list,
-    is_correct: list}
-
-    :param theta: Vector
-    :param beta: Vector
-    :return: float
-    """
-    pred = []
-    for i, q in enumerate(data["question_id"]):
-        u = data["user_id"][i]
-        x = (theta[u] - beta[q]).sum()
-        p_a = sigmoid(x)
-        pred.append(p_a >= 0.5)
-    return np.sum((data["is_correct"] == np.array(pred))) / len(data["is_correct"])
 
 def plot_results(nll_list, val_acc_lst, student_id):
+    """Plot NLL and validation accuracy over epochs."""
     fig, ax1 = plt.subplots()
     ax1.plot(range(len(nll_list)), nll_list, label='Training NLL', color='blue')
     ax1.set_xlabel('Epoch')
@@ -170,51 +104,54 @@ def plot_results(nll_list, val_acc_lst, student_id):
     plt.savefig(f"irt_results_{student_id}.png")
     plt.close()
 
+
+def plot_question_curves(theta, beta, question_ids, student_id):
+    """Plot p(c_ij=1) vs theta for 3 selected questions."""
+    theta_range = np.linspace(min(theta), max(theta), 200)
+    plt.figure(figsize=(8, 5))
+
+    for q in question_ids:
+        probs = sigmoid(theta_range - beta[q])
+        plt.plot(theta_range, probs, label=f"Question {q}")
+
+    plt.title("IRT Probability Curves for Selected Questions")
+    plt.xlabel("Student ability (θ)")
+    plt.ylabel("P(correct | θ, β)")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(f"irt_curves_{student_id}.png")
+    plt.close()
+
+
 def main():
     train_data = load_train_csv("./data")
-    # You may optionally use the sparse matrix.
-    # sparse_matrix = load_train_sparse("./data")
     val_data = load_valid_csv("./data")
     test_data = load_public_test_csv("./data")
 
     best_acc = 0
     best_params = None
-    results = {}
 
-    
-    #####################################################################
-    # TODO:                                                             #
-    # Tune learning rate and number of iterations. With the implemented #
-    # code, report the validation and test accuracy.                    #
-    #####################################################################
-    for lr in [0.001, 0.01, 0.05]:
-        for lamb in [0.0, 0.01, 0.1]:
-            for it in [20, 50]: 
+    for lr in [0.01, 0.05]:
+        for lamb in [0.0, 0.01]:
+            for it in [20, 50]:
                 theta, beta, val_acc, nll = irt(train_data, val_data, lr, it, lamb)
                 acc = val_acc[-1]
-                results[(lr, lamb, it)] = acc
                 if acc > best_acc:
                     best_acc = acc
                     best_params = (lr, lamb, it)
-                    best_theta, best_beta, best_val_acc, best_nll = theta, beta, val_acc, nll
+                    best_theta, best_beta = theta, beta
+                    best_val_acc, best_nll = val_acc, nll
 
     test_acc = evaluate(test_data, best_theta, best_beta)
     print(f"Best Params: lr={best_params[0]}, λ={best_params[1]}, iter={best_params[2]}")
     print(f"Validation Acc={best_acc:.4f}, Test Acc={test_acc:.4f}")
 
-    plot_results(best_nll, best_val_acc, student_id="123456")
-    #####################################################################
-    #                               END OF YOUR CODE                    #
-    #####################################################################
+    student_id = "2201040169"
+    plot_results(best_nll, best_val_acc, student_id)
 
-    #####################################################################
-    # TODO:                                                             #
-    # Implement part (d)                                                #
-    #####################################################################
-    pass
-    #####################################################################
-    #                               END OF YOUR CODE                    #
-    #####################################################################
+    # Visualization part (d)
+    selected_questions = [0, 100, 500]  # example question IDs
+    plot_question_curves(best_theta, best_beta, selected_questions, student_id)
 
 
 if __name__ == "__main__":
