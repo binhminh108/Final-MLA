@@ -1,6 +1,6 @@
 # MLA Fall 2025 - Hanoi University
 # Academic Integrity Declaration:
-# I, [Student Name] ([Student ID]), declare that this code is my own original work.
+# I, Vu Van Thang (2201040169), declare that this code is my own original work.
 # I have not copied or adapted code from any external repositories or previous years.
 # Any sources or libraries used are explicitly cited below.
 from utils import (
@@ -11,7 +11,6 @@ from utils import (
 )
 import numpy as np
 import matplotlib.pyplot as plt
-
 
 
 def sigmoid(x):
@@ -47,7 +46,7 @@ def neg_log_likelihood(data, theta, beta, lamb=0.0):
     # add L2 regularization
     reg = (lamb / 2) * (np.sum(theta**2) + np.sum(beta**2))
     #####################################################################
-    #                       END OF YOUR CODE                            #
+    #                               END OF YOUR CODE                    #
     #####################################################################
     return -log_likelihood + reg
 
@@ -93,7 +92,7 @@ def update_theta_beta(data, lr, theta, beta, lamb=0.0):
     theta += lr * d_theta
     beta += lr * d_beta
     #####################################################################
-    #                       END OF YOUR CODE                            #
+    #                               END OF YOUR CODE                    #
     #####################################################################
     return theta, beta
 
@@ -111,12 +110,16 @@ def irt(train_data, val_data, lr, iterations, lamb=0.0):
     :param iterations: int
     :return: (theta, beta, val_acc_lst)
     """
+    #####################################################################
     # TODO: Initialize theta and beta.
     n_users = max(train_data["user_id"]) + 1
     n_questions = max(train_data["question_id"]) + 1
 
     theta = np.random.normal(0, 0.1, n_users)
     beta = np.random.normal(0, 0.1, n_questions)
+    #####################################################################
+    #                               END OF YOUR CODE                    #
+    #####################################################################
 
     val_acc_lst = []
     nll_list = []
@@ -130,8 +133,12 @@ def irt(train_data, val_data, lr, iterations, lamb=0.0):
         print(f"Epoch {i+1}/{iterations} | NLL={nll:.4f} | ValAcc={score:.4f}")
         theta, beta = update_theta_beta(train_data, lr, theta, beta, lamb)
 
+    #####################################################################
     # TODO: You may change the return values to achieve what you want.
     return theta, beta, val_acc_lst, nll_list
+    #####################################################################
+    #                               END OF YOUR CODE                    #
+    #####################################################################
 
 
 def evaluate(data, theta, beta):
@@ -197,7 +204,7 @@ def main():
 
     plot_results(best_nll, best_val_acc, student_id="123456")
     #####################################################################
-    #                       END OF YOUR CODE                            #
+    #                               END OF YOUR CODE                    #
     #####################################################################
 
     #####################################################################
@@ -206,7 +213,7 @@ def main():
     #####################################################################
     pass
     #####################################################################
-    #                       END OF YOUR CODE                            #
+    #                               END OF YOUR CODE                    #
     #####################################################################
 
 
