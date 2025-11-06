@@ -90,7 +90,8 @@ def item_knn_predict_hanu(matrix, valid_data, k, student_id=""):
             question_id = valid_data["question_id"][i]
             preds.append(mat_imputed[user_id, question_id])
         
-        filename = f"2201040200_item_knn_preds.npy"
+        # *** SỬA ĐỔI 1: Sử dụng biến student_id thay vì gán cứng ***
+        filename = f"{student_id}_item_knn_preds.npy"
         np.save(filename, np.array(preds))
         print(f"Item-based predictions for k={k} saved to {filename}")
     #####################################################################
@@ -165,9 +166,11 @@ def main():
     for k in ks:
         acc = item_knn_predict_hanu(sparse_matrix, val_data, k, student_id="2201040200")
         print(f"For k = {k}, Validation Accuracy (Item-based): {acc:.4f}")
-    if acc > best_item_acc:
-        best_item_acc = acc
-        best_item_k = k
+        
+        # *** SỬA ĐỔI 2: Đưa khối if này vào BÊN TRONG vòng lặp for ***
+        if acc > best_item_acc:
+            best_item_acc = acc
+            best_item_k = k
 
     print(f"Best k* for Item-based KNN: {best_item_k} with Validation Accuracy = {best_item_acc:.4f}")
     #####################################################################
@@ -179,7 +182,8 @@ def main():
           "This suggests that considering a moderate number of similar users provides the best signal for prediction, "
         "whereas a very small K is too noisy and a very large K includes too many dissimilar users.")
 
-    print(f"For the item-based KNN, the best validation accuracy was {acc:.4f} at k = {best_item_k}.")
+    # *** Sửa đổi nhỏ: In ra best_item_acc và best_item_k thay vì acc và k cuối cùng ***
+    print(f"For the item-based KNN, the best validation accuracy was {best_item_acc:.4f} at k = {best_item_k}.")
     print("Reflection: This shows that considering many similar questions helps the model to better utilize the relationship between questions to predict the outcome. " 
           "However, if k continues to increase too much, the model may be contaminated by less relevant questions, leading to a decline in predictive performance.")
     
