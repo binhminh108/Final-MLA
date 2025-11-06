@@ -1,6 +1,6 @@
 # MLA Fall 2025 - Hanoi University
 # Academic Integrity Declaration:
-# I, [Student Name] ([Student ID]), declare that this code is my own original work.
+# I, 2201040195 (Nguyễn Công Vinh), declare that this code is my own original work.
 
 import numpy as np
 import torch
