@@ -143,7 +143,7 @@ def main():
                     best_val_acc, best_nll = val_acc, nll
 
     test_acc = evaluate(test_data, best_theta, best_beta)
-    print(f"Best Params: lr={best_params[0]}, λ={best_params[1]}, iter={best_params[2]}")
+    print(f"Best Params: lr={best_params[0]}, lamb={best_params[1]}, iter={best_params[2]}")
     print(f"Validation Acc={best_acc:.4f}, Test Acc={test_acc:.4f}")
 
     student_id = "2201040169"
